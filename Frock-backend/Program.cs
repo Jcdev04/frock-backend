@@ -5,27 +5,104 @@ using Frock_backend.access_and_identity.Domain.Repositories;
 using Frock_backend.access_and_identity.Infrastructure.Persistence;
 using Frock_backend.access_and_identity.Infrastructure.Repositories;
 
+
+//STOPS - Amir
+using Frock_backend.shared.Infrastructure.Persistences.EFC.Configuration;
+using Frock_backend.shared.Infrastructure.Persistences.EFC.Repositories;
+using Frock_backend.shared.Infrastructure.Interfaces.ASP.Configuration;
+
+using Frock_backend.stops.Application.Internal.CommandServices;
+using Frock_backend.stops.Application.Internal.QueryServices;
+
+using Frock_backend.stops.Domain.Repositories;
+using Frock_backend.stops.Domain.Services;
+
+using Frock_backend.stops.Infrastructure.Repositories;
+using Frock_backend.shared.Domain.Repositories;
+
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Configure Lower Case URLs
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
+// Configure Kebab Case Route Naming Convention
+builder.Services.AddControllers(options => options.Conventions.Add(new KebabCaseRouteNamingConvention()));
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.EnableAnnotations();
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "CatchUP API",
+        Version = "v1"
+    });
+});
 // Database
 builder.Services.AddDbContext<AccessIdentityDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Dependency Injection
+//Stops Database
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (connectionString is null)
+{
+    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+}
+
+// Configure Database Context and Logging Levels
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddDbContext<AppDbContext>(
+        options =>
+        {
+            options.UseMySQL(connectionString)
+                .LogTo(Console.WriteLine, LogLevel.Information)
+                .EnableSensitiveDataLogging()
+                .EnableDetailedErrors();
+        });
+else if (builder.Environment.IsProduction())
+    builder.Services.AddDbContext<AppDbContext>(
+        options =>
+        {
+            options.UseMySQL(connectionString)
+                .LogTo(Console.WriteLine, LogLevel.Error)
+                .EnableDetailedErrors();
+        });
+
+
+// Configure Dependency Injection
+// Shared Bounded Context Injection Configuration
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// News Bounded Context Injection Configuration
+builder.Services.AddScoped<IStopRepository, StopRepository>();
+builder.Services.AddScoped<IStopCommandService, StopCommandService>();
+builder.Services.AddScoped<IStopQueryService, StopQueryService>();
+
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
+// Verify Database Objects are created
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
+    context.Database.EnsureCreated();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
+    app.UseSwagger(c =>
+    {
+        c.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0;
+    });
     app.UseSwaggerUI();
 }
 
