@@ -22,19 +22,7 @@
   <ItemGroup>
     <Folder Include="access and identity\Domain\Enums\" />
     <Folder Include="access and identity\Domain\Services\" />
-    <Folder Include="discovery\Domain\" />
     <Folder Include="discovery\Application\" />
-    <Folder Include="discovery\Infrastructure\" />
-    <Folder Include="routes\Domain\" />
-    <Folder Include="routes\Application\" />
-    <Folder Include="routes\Infrastructure\" />
-    <Folder Include="shared\infrastructure\" />
-    <Folder Include="stops\Domain\" />
-    <Folder Include="stops\Application\" />
-    <Folder Include="stops\Infrastructure\" />
-    <Folder Include="transport Company\Application\" />
-    <Folder Include="transport Company\Domain\" />
-    <Folder Include="transport Company\Infrastructure\" />
   </ItemGroup>
 
 </Project>
