@@ -5,14 +5,14 @@ namespace Frock_backend.stops.Domain.Model.Aggregates
     public class Stop
     {
         public int Id { get; }
-        public string Name { get; private set; }
-        public string GoogleMapsUrl { get; private set; }
-        public string ImageUrl { get; private set; }
-        public string Phone { get; private set; }
-        public string FkIdCompany { get; private set; }
-        public string Address { get; private set; }
-        public string Reference { get; private set; }
-        public string FkIdLocality { get; private set; }
+        public string Name { get;  set; }
+        public string GoogleMapsUrl { get;  set; }
+        public string ImageUrl { get;  set; }
+        public string Phone { get;  set; }
+        public string FkIdCompany { get;  set; }
+        public string Address { get;  set; }
+        public string Reference { get;  set; }
+        public string FkIdLocality { get;  set; }
 
         protected Stop()
         {
@@ -36,6 +36,32 @@ namespace Frock_backend.stops.Domain.Model.Aggregates
             Address = command.Address;
             Reference = command.Reference;
             FkIdLocality = command.FkIdLocality;
+        }
+
+        public Stop(UpdateStopCommand command)
+        {
+            Id = command.Id;
+            Name = command.Name;
+            GoogleMapsUrl = command.GoogleMapsUrl;
+            ImageUrl = command.ImageUrl;
+            Phone = command.Phone;
+            FkIdCompany = command.FkIdCompany;
+            Address = command.Address;
+            Reference = command.Reference;
+            FkIdLocality = command.FkIdLocality;
+        }
+
+        public Stop(DeleteStopCommand command)
+        {
+            Id = command.Id;
+            Name = "";
+            GoogleMapsUrl = "";
+            ImageUrl = "";
+            Phone = "";
+            FkIdCompany = "";
+            Address = "";
+            Reference = "";
+            FkIdLocality = "";
         }
     }
 }

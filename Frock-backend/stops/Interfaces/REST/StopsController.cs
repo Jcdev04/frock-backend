@@ -1,4 +1,5 @@
-﻿using Frock_backend.stops.Domain.Model.Queries;
+﻿using Frock_backend.stops.Domain.Model.Commands;
+using Frock_backend.stops.Domain.Model.Queries;
 using Frock_backend.stops.Domain.Services;
 using Frock_backend.stops.Interfaces.REST.Resources;
 using Frock_backend.stops.Interfaces.REST.Transform;
@@ -140,6 +141,94 @@ namespace Frock_backend.stops.Interfaces.REST
 
             var resource = StopResourceFromEntityAssembler.ToResourceFromEntity(result);
             return Ok(resource);
+        }
+
+
+        /// <summary>
+        /// Deletes a stop by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the stop to delete.</param>
+        /// <returns>
+        /// 204 No Content if the stop was successfully deleted.
+        /// 404 Not Found if the stop was not found.
+        /// </returns>
+        [HttpDelete("{id}")] // Changed to take ID from route
+        [SwaggerOperation(
+            Summary = "Deletes a stop by ID",
+            Description = "Deletes a stop for a given stop identifier",
+            OperationId = "DeleteStop")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "The stop was successfully deleted")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "The stop was not found")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request (e.g., malformed ID)")] // Optional, for completeness
+        public async Task<IActionResult> DeleteStop(int id) // Changed parameter to take ID from route
+        {
+            // The DeleteStopResource is no longer needed if ID comes from the route.
+            // If DeleteStopCommand only needs the ID, you can create it directly.
+            var deleteStopCommand = new DeleteStopCommand(id);
+            var deletedStop = await stopCommandService.Handle(deleteStopCommand);
+
+            if (deletedStop is null)
+            {
+                return NotFound(); // Return 404 if the service indicates the stop was not found
+            }
+
+            return NoContent(); // Return 204 No Content for successful deletion
+        }
+
+
+        /// <summary>
+        /// Updates an existing stop.
+        /// </summary>
+        /// <param name="id">The ID of the stop to update.</param>
+        /// <param name="resource">The UpdateStopResource containing the updated data.</param>
+        /// <returns>
+        /// 200 OK with the updated stop resource if successful.
+        /// 400 Bad Request if the resource ID in the URL does not match the ID in the body, or if the update fails due to validation.
+        /// 404 Not Found if the stop with the given ID was not found.
+        /// </returns>
+        [HttpPut("{id}")]
+        [SwaggerOperation(
+            Summary = "Updates an existing stop by ID.",
+            Description = "Updates an existing stop with the provided data. The ID in the URL must match the ID in the request body.",
+            OperationId = "UpdateStop")]
+        [SwaggerResponse(StatusCodes.Status200OK, "The stop was successfully updated.", typeof(StopResource))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request data (e.g., ID mismatch or validation error).")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "The stop with the specified ID was not found.")]
+        public async Task<IActionResult> UpdateStop(int id, [FromBody] UpdateStopResource resource)
+        {
+            if (id != resource.Id)
+            {
+                return BadRequest("ID in URL must match ID in request body.");
+            }
+
+            var updateStopCommand = UpdateStopCommandFromResourceAssembler.ToCommandFromResource(resource);
+            var updatedStop = await stopCommandService.Handle(updateStopCommand);
+
+            if (updatedStop is null)
+            {
+                // This could mean "not found" or "failed to update due to other reasons"
+                // based on your StopCommandService.Handle(UpdateStopCommand) implementation.
+                // Assuming service returns null if not found, or if update fails for other validation reasons not caught by model state.
+                // For a more specific 404, your service would need to differentiate "not found" from "other update failure".
+                // If your service throws for "not found", this check might not be hit for that case.
+                // Let's assume for now that null from service after an update attempt means either not found or a general update failure.
+                // A more robust service might return a result object indicating status.
+                // For now, we'll try to infer. A common pattern is that if the service's FindByIdAsync (called internally) returns null, then the entity wasn't found.
+
+                // To provide a more accurate 404, we might need to query first, or the service needs to be more explicit.
+                // Given the current service signature, if updatedStop is null, it could be "not found" or "bad request".
+                // Let's assume the service returns null if the entity to update wasn't found.
+                var existingStop = await stopQueryService.Handle(new GetStopByIdQuery(id));
+                if (existingStop == null)
+                {
+                    return NotFound($"Stop with ID {id} not found.");
+                }
+                // If it exists but update still failed and returned null
+                return BadRequest("Could not update the stop with the provided parameters.");
+            }
+
+            var stopResource = StopResourceFromEntityAssembler.ToResourceFromEntity(updatedStop);
+            return Ok(stopResource);
         }
 
     }

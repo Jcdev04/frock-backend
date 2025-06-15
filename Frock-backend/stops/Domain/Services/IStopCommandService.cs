@@ -16,5 +16,7 @@ namespace Frock_backend.stops.Domain.Services
              /// <returns></returns>
              /// <exception cref="Exception"></exception>
         Task<Stop?> Handle(CreateStopCommand command);
+        Task<Stop?> Handle(UpdateStopCommand command);
+        Task<Stop?> Handle(DeleteStopCommand command);
     }
 }
