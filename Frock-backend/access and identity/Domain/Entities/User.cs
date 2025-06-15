@@ -36,5 +36,19 @@ namespace Frock_backend.access_and_identity.Domain.Entities
         {
             return BCrypt.Net.BCrypt.Verify(password, PasswordHash);
         }
+
+        // ✅ Método para devolver datos seguros (sin PasswordHash)
+        public object ToSafeObject()
+        {
+            return new
+            {
+                Id = Id.Value,
+                FirstName = FirstName,
+                LastName = LastName,
+                Email = Email.Value,
+                Role = Role,
+                CreatedAt = CreatedAt
+            };
+        }
     }
 }

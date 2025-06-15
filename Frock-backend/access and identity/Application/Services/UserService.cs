@@ -1,5 +1,4 @@
-﻿using Frock_backend.access_and_identity.Application.DTOs;
-using Frock_backend.access_and_identity.Application.Interfaces;
+﻿using Frock_backend.access_and_identity.Application.Interfaces;
 using Frock_backend.access_and_identity.Domain.Entities;
 using Frock_backend.access_and_identity.Domain.Repositories;
 using Frock_backend.access_and_identity.Domain.ValueObjects;
@@ -15,58 +14,36 @@ namespace Frock_backend.access_and_identity.Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<UserResponseDto> RegisterAsync(RegisterUserDto registerDto)
+        public async Task<User> RegisterAsync(string firstName, string lastName, string email, string password, UserRole role)
         {
-            var email = new Email(registerDto.Email);
+            var emailVO = new Email(email);
 
             // Verificar si el email ya existe
-            if (await _userRepository.ExistsByEmailAsync(email))
+            if (await _userRepository.ExistsByEmailAsync(emailVO))
             {
                 throw new InvalidOperationException("A user with this email already exists");
             }
 
             // Crear nuevo usuario
-            var user = new User(
-                registerDto.FirstName,
-                registerDto.LastName,
-                registerDto.Email,
-                registerDto.Password,
-                registerDto.Role
-            );
+            var user = new User(firstName, lastName, email, password, role);
 
             await _userRepository.AddAsync(user);
             await _userRepository.SaveChangesAsync();
 
-            return new UserResponseDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt
-            };
+            return user;
         }
 
-        public async Task<UserResponseDto?> LoginAsync(LoginUserDto loginDto)
+        public async Task<User?> LoginAsync(string email, string password)
         {
-            var email = new Email(loginDto.Email);
-            var user = await _userRepository.GetByEmailAsync(email);
+            var emailVO = new Email(email);
+            var user = await _userRepository.GetByEmailAsync(emailVO);
 
-            if (user == null || !user.VerifyPassword(loginDto.Password))
+            if (user == null || !user.VerifyPassword(password))
             {
                 return null;
             }
 
-            return new UserResponseDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt
-            };
+            return user;
         }
     }
 }
