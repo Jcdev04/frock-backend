@@ -6,8 +6,8 @@ namespace Frock_backend.stops.Domain.Model.Aggregates
     {
         public int Id { get; }
         public string Name { get;  set; }
-        public string GoogleMapsUrl { get;  set; }
-        public string ImageUrl { get;  set; }
+        public string? GoogleMapsUrl { get;  set; }
+        public string? ImageUrl { get;  set; }
         public string Phone { get;  set; }
         public string FkIdCompany { get;  set; }
         public string Address { get;  set; }

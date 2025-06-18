@@ -1,5 +1,9 @@
 ﻿using Frock_backend.shared.Infrastructure.Persistences.EFC.Configuration.Extensions;
+
+//AGREGATES
 using Frock_backend.stops.Domain.Model.Aggregates;
+using Frock_backend.stops.Domain.Model.Aggregates.Geographic;
+
 using Microsoft.EntityFrameworkCore;
 using EntityFrameworkCore.CreatedUpdatedDate.Extensions;
 
@@ -18,17 +22,63 @@ namespace Frock_backend.shared.Infrastructure.Persistences.EFC.Configuration
         {
             base.OnModelCreating(builder);
 
+            //REGION
+            builder.Entity<Region>().HasKey(f => f.Id);
+            builder.Entity<Region>().Property(f => f.Id).IsRequired();
+            builder.Entity<Region>().Property(f => f.Name).IsRequired();
+
+            //PROVINCE
+            builder.Entity<Province>().HasKey(f => f.Id);
+            builder.Entity<Province>().Property(f => f.Id).IsRequired();
+            builder.Entity<Province>().Property(f => f.Name).IsRequired();
+            builder.Entity<Province>()
+                .HasOne<Region>()
+                .WithMany()
+                .HasForeignKey(p => p.FkIdRegion)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //DISTRICT
+            builder.Entity<District>().HasKey(f => f.Id);
+            builder.Entity<District>().Property(f => f.Id).IsRequired();
+            builder.Entity<District>().Property(f => f.Name).IsRequired();
+            builder.Entity<District>()
+                .HasOne<Province>()
+                .WithMany()
+                .HasForeignKey(d => d.FkIdProvince)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //LOCALITY
+            builder.Entity<Locality>().HasKey(f => f.Id);
+            builder.Entity<Locality>().Property(f => f.Id).IsRequired();
+            builder.Entity<Locality>().Property(f => f.Name).IsRequired();
+            builder.Entity<Locality>()
+                .HasOne<District>()
+                .WithMany()
+                .HasForeignKey(l => l.FkIdDistrict)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            //STOP
             builder.Entity<Stop>().HasKey(f => f.Id);
             builder.Entity<Stop>().Property(f => f.Id).IsRequired().ValueGeneratedOnAdd();
             builder.Entity<Stop>().Property(f => f.Name).IsRequired();
             builder.Entity<Stop>().Property(f => f.GoogleMapsUrl).IsRequired();
             builder.Entity<Stop>().Property(f => f.ImageUrl).IsRequired();
             builder.Entity<Stop>().Property(f => f.Phone).IsRequired();
-            builder.Entity<Stop>().Property(f => f.FkIdCompany).IsRequired();
+            builder.Entity<Stop>().Property(f => f.FkIdCompany).IsRequired(); // Luego modificar para definirlo como foreign key
             builder.Entity<Stop>().Property(f => f.Address).IsRequired();
             builder.Entity<Stop>().Property(f => f.Reference).IsRequired();
-            builder.Entity<Stop>().Property(f => f.FkIdLocality).IsRequired();
+            builder.Entity<Stop>()
+                .HasOne<Locality>() // Un Stop tiene una Locality
+                .WithMany() // Una Locality tiene muchos Stops
+                .HasForeignKey(f => f.FkIdLocality)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
 
+            
             builder.UseSnakeCaseNamingConvention();
         }
     }
