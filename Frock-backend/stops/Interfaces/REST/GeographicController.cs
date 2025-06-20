@@ -36,8 +36,23 @@ namespace Frock_backend.stops.Interfaces.REST
             var regionResources = regions.Select(RegionResourceFromEntityAssembler.ToResourceFromEntity);
             return Ok(regionResources);
         }
-        
+
         // Endpoints para Provinces
+
+        //getAllprovinces
+        [HttpGet("provinces")]
+        [SwaggerOperation(
+               Summary = "Gets all provinces",
+               Description = "Gets all provinces",
+               OperationId = "GetAllProvinces")]
+        [SwaggerResponse(200, "The list of provinces", typeof(IEnumerable<ProvinceResource>))]
+        public async Task<IActionResult> GetAllProvinces() {
+            var provinces = await provinceQueryService.Handle(new GetAllProvincesQuery());
+            var provinceResources = provinces.Select(ProvinceResourceFromEntityAssembler.ToResourceFromEntity);
+            return Ok(provinceResources);
+        }
+
+
         [HttpGet("provinces/region/{regionId}")]
         [SwaggerOperation(
                Summary = "Gets a province by id",
@@ -57,8 +72,21 @@ namespace Frock_backend.stops.Interfaces.REST
             var provinceResources = provinces.Select(ProvinceResourceFromEntityAssembler.ToResourceFromEntity);
             return Ok(provinceResources);
         }
-        
+
         // Endpoints para Districts
+        //getAlldistricts
+        [HttpGet("districts")]
+        [SwaggerOperation(
+               Summary = "Gets all districts",
+               Description = "Gets all districts",
+               OperationId = "GetAllDistricts")]
+        [SwaggerResponse(200, "The list of districts", typeof(IEnumerable<DistrictResource>))]
+        public async Task<IActionResult> GetAllDistricts() {
+            var districts = await districtQueryService.Handle(new GetAllDistrictsQuery());
+            var districtResources = districts.Select(DistrictResourceFromEntityAssembler.ToResourceFromEntity);
+            return Ok(districtResources);
+        }
+
         [HttpGet("districts/province/{provinceId}")]
         [SwaggerOperation(
                Summary = "Gets districts by province id",
@@ -74,8 +102,22 @@ namespace Frock_backend.stops.Interfaces.REST
             var districtResources = districts.Select(DistrictResourceFromEntityAssembler.ToResourceFromEntity);
             return Ok(districtResources);
         }
-        
+
         // Endpoints para Localities
+        //getAllLocalities
+        [HttpGet("localities")]
+        [SwaggerOperation(
+               Summary = "Gets all localities",
+               Description = "Gets all localities",
+               OperationId = "GetAllLocalities")]
+        [SwaggerResponse(200, "The list of localities", typeof(IEnumerable<LocalityResource>))]
+        public async Task<IActionResult> GetAllLocalities() {
+            var localities = await localityQueryService.Handle(new GetAllLocalitiesQuery());
+            var localityResources = localities.Select(LocalityResourceFromEntityAssembler.ToResourceFromEntity);
+            return Ok(localityResources);
+        }
+
+
         [HttpGet("localities/district/{districtId}")]
         [SwaggerOperation(
                Summary = "Gets localities by district id",
