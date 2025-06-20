@@ -25,6 +25,25 @@ namespace Frock_backend.stops.Interfaces.REST
 
     {
         // Endpoints para Regions
+        //getRegionById
+        [HttpGet("regions/{id}")]
+        [SwaggerOperation(
+                Summary = "Gets a region by id",
+                Description = "Gets a region for a given identifier",
+                OperationId = "GetRegionById")]
+        [SwaggerResponse(StatusCodes.Status200OK, "The region", typeof(RegionResource))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Region not found")]
+        public async Task<IActionResult> GetRegionById(string id) {
+            var query = new GetRegionByIdQuery(id);
+            var region = await regionQueryService.Handle(query);
+            if (region == null) {
+                return NotFound();
+            }
+            var regionResource = RegionResourceFromEntityAssembler.ToResourceFromEntity(region);
+            return Ok(regionResource);
+        }
+
+        //getAllRegions
         [HttpGet("regions")]
         [SwaggerOperation(
         Summary = "Get all regions",
@@ -38,6 +57,23 @@ namespace Frock_backend.stops.Interfaces.REST
         }
 
         // Endpoints para Provinces
+        //getProvinceById
+        [HttpGet("provinces/{id}")]
+        [SwaggerOperation(
+               Summary = "Gets a province by id",
+               Description = "Gets a province for a given identifier",
+               OperationId = "GetProvinceById")]
+        [SwaggerResponse(200, "The province", typeof(ProvinceResource))]
+        [SwaggerResponse(404, "Province not found")]
+        public async Task<IActionResult> GetProvinceById(string id) {
+            var query = new GetProvinceByIdQuery(id);
+            var province = await provinceQueryService.Handle(query);
+            if (province == null) {
+                return NotFound();
+            }
+            var provinceResource = ProvinceResourceFromEntityAssembler.ToResourceFromEntity(province);
+            return Ok(provinceResource);
+        }
 
         //getAllprovinces
         [HttpGet("provinces")]
@@ -55,7 +91,7 @@ namespace Frock_backend.stops.Interfaces.REST
 
         [HttpGet("provinces/region/{regionId}")]
         [SwaggerOperation(
-               Summary = "Gets a province by id",
+               Summary = "Gets a province by regionid",
                Description = "Gets a province for a given region identifier",
                OperationId = "GetProvincesByFkIdRegion")]
         [SwaggerResponse(200, "The list of provinces", typeof(IEnumerable<RegionResource>))]
@@ -74,6 +110,25 @@ namespace Frock_backend.stops.Interfaces.REST
         }
 
         // Endpoints para Districts
+        //getDistrictById
+        [HttpGet("districts/{id}")]
+        [SwaggerOperation(
+               Summary = "Gets a district by id",
+               Description = "Gets a district for a given identifier",
+               OperationId = "GetDistrictById")]
+        [SwaggerResponse(200, "The district", typeof(DistrictResource))]
+        [SwaggerResponse(404, "District not found")]
+        public async Task<IActionResult> GetDistrictById(string id) {
+            var query = new GetDistrictByIdQuery(id);
+            var district = await districtQueryService.Handle(query);
+            if (district == null) {
+                return NotFound();
+            }
+            var districtResource = DistrictResourceFromEntityAssembler.ToResourceFromEntity(district);
+            return Ok(districtResource);
+        }
+
+
         //getAlldistricts
         [HttpGet("districts")]
         [SwaggerOperation(
@@ -104,6 +159,25 @@ namespace Frock_backend.stops.Interfaces.REST
         }
 
         // Endpoints para Localities
+        //getLocalityById
+        [HttpGet("localities/{id}")]
+        [SwaggerOperation(
+               Summary = "Gets a locality by id",
+               Description = "Gets a locality for a given identifier",
+               OperationId = "GetLocalityById")]
+        [SwaggerResponse(200, "The locality", typeof(LocalityResource))]
+        [SwaggerResponse(404, "Locality not found")]
+        public async Task<IActionResult> GetLocalityById(string id) {
+            var query = new GetLocalityByIdQuery(id);
+            var locality = await localityQueryService.Handle(query);
+            if (locality == null) {
+                return NotFound();
+            }
+            var localityResource = LocalityResourceFromEntityAssembler.ToResourceFromEntity(locality);
+            return Ok(localityResource);
+        }
+
+
         //getAllLocalities
         [HttpGet("localities")]
         [SwaggerOperation(
@@ -117,7 +191,7 @@ namespace Frock_backend.stops.Interfaces.REST
             return Ok(localityResources);
         }
 
-
+        //by district id
         [HttpGet("localities/district/{districtId}")]
         [SwaggerOperation(
                Summary = "Gets localities by district id",
