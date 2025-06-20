@@ -29,5 +29,7 @@ namespace Frock_backend.stops.Infrastructure.Repositories
             return await context.Set<Stop>()
                 .FirstOrDefaultAsync(f => f.Name == name && f.FkIdLocality == fkIdLocality);
         }
+
+
     }
 }

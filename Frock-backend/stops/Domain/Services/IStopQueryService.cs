@@ -40,6 +40,8 @@ namespace Frock_backend.stops.Domain.Services
         /// </returns>
         Task<Stop?> Handle(GetStopByIdQuery query);
 
+        Task<IEnumerable<Stop>> Handle(GetAllStopsQuery query);
+
 
         /// <summary>
         ///     Handle the GetStopByNameAndFkIdLocalityQuery.

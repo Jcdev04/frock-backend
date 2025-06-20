@@ -65,6 +65,26 @@ namespace Frock_backend.stops.Interfaces.REST
             return Ok(resource);
         }
 
+        [HttpGet]
+        [SwaggerOperation(
+            Summary = "Gets all stops",
+            Description = "Gets all stops in the system",
+            OperationId = "GetAllStops")]
+        [SwaggerResponse(200, "The stops were found", typeof(IEnumerable<StopResource>))] // Updated return type
+        [SwaggerResponse(StatusCodes.Status404NotFound, "No stops found")] // Added 404 response
+
+        public async Task<IActionResult> GetAllStops()
+        {
+            var getAllStopsQuery = new GetAllStopsQuery();
+            var result = await stopQueryService.Handle(getAllStopsQuery);
+            if (result == null || !result.Any()) // Check for null or empty collection
+            {
+                return NotFound(); // Or Ok(Enumerable.Empty<StopResource>()) if an empty list is acceptable
+            }
+            var resources = result.Select(StopResourceFromEntityAssembler.ToResourceFromEntity); // Transform collection
+            return Ok(resources);
+        }
+
         //
         [HttpGet("company/{FkIdCompany}")]
         [SwaggerOperation(

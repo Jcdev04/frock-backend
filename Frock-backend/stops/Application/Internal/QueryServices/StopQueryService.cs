@@ -25,5 +25,9 @@ namespace Frock_backend.stops.Application.Internal.QueryServices
             return await stopRepository.FindByNameAndFkIdLocalityAsync(query.Name, query.FkIdLocality);
         }
 
+        public async Task<IEnumerable<Stop>> Handle(GetAllStopsQuery query)
+        {
+            return await stopRepository.ListAsync();
+        }
     }
 }
