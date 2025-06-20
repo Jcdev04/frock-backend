@@ -1,0 +1,58 @@
+﻿name: CI/CD .NET Core → Azure WebApp
+
+# Se dispara en push a main, PRs hacia main y manualmente
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: windows-latest
+    steps:
+      # 1. Checkout del código
+      - uses: actions/checkout@v4
+
+      # 2. Instalación de .NET SDK
+      - name: Setup .NET 9.x
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.x'
+
+      # 3. Restaurar paquetes
+      - name: dotnet restore
+        run: dotnet restore ./Frock-backend.sln
+
+      # 4. Compilar en Release
+      - name: dotnet build
+        run: dotnet build ./Frock-backend.sln --configuration Release --no-restore
+     
+  deploy:
+    name: Publish & Deploy to Azure
+    needs: build-and-test
+    runs-on: windows-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 9.x
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.x'
+
+      # 7. Publicar artefacto
+      - name: dotnet publish
+        run: dotnet publish ./Frock-backend/Frock-backend.csproj \
+               --configuration Release \
+               --output ./publish_output
+
+      # 8. Desplegar a Azure Web App
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}       # Nombre de tu Web App
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }} # Tu Publish Profile
+          package: ./publish_output
