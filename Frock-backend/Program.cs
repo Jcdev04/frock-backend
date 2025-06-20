@@ -139,7 +139,24 @@ builder.Services.AddScoped<IRegionRepository, RegionRepository>();
 // Datos iniciales fijos de datos geográficos
 builder.Services.AddScoped<GeographicDataSeeder>();
 
+
+//CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5174")//ajustar
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+
+app.UseCors();
+
+
 
 // Verify Database Objects are created
 using (var scope = app.Services.CreateScope())
