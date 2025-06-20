@@ -10,7 +10,7 @@
         string GoogleMapsUrl, // The URL to the stop's location on Google Maps, por mientras en null
         string ImageUrl, // The URL to the stop's image
         string Phone, // The phone number associated with the stop
-        string FkIdCompany, // This is a foreign key to a Company entity
+        int FkIdCompany, // This is a foreign key to a Company entity
         string Address, // The address of the stop
         string Reference, // A reference or additional information about the stop
         string FkIdLocality // This is a foreign key to a Locality entity

@@ -11,6 +11,16 @@ using Frock_backend.shared.Infrastructure.Persistences.EFC.Repositories;
 using Frock_backend.shared.Infrastructure.Interfaces.ASP.Configuration;
 using Frock_backend.shared.Domain.Repositories;
 
+//COMPANY - Amir
+
+using Frock_backend.transport_Company.Application.Internal.CommandServices;
+using Frock_backend.transport_Company.Application.Internal.QueryServices;
+
+using Frock_backend.transport_Company.Domain.Repositories;
+using Frock_backend.transport_Company.Domain.Services;
+
+using Frock_backend.transport_Company.Infrastructure.Repositories;
+
 //STOPS - Amir
 
 using Frock_backend.stops.Application.Internal.CommandServices;
@@ -98,8 +108,13 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IUserService, UserService>();
 
+//Company
+    builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+    builder.Services.AddScoped<ICompanyCommandService, CompanyCommandService>();
+    builder.Services.AddScoped<ICompanyQueryService, CompanyQueryService>();
+
 //Geographic
-    builder.Services.AddScoped<IRegionRepository, RegionRepository>();
+builder.Services.AddScoped<IRegionRepository, RegionRepository>();
     builder.Services.AddScoped<IRegionCommandService, RegionCommandService>();
     builder.Services.AddScoped<IRegionQueryService, RegionQueryService>();
         /**/

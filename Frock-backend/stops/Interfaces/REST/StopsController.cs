@@ -72,7 +72,7 @@ namespace Frock_backend.stops.Interfaces.REST
        Description = "Gets a stop for a given company identifier",
        OperationId = "GetStopsByFkIdCompany")]
         [SwaggerResponse(200, "The stops were found", typeof(IEnumerable<StopResource>))] // Updated return type
-        public async Task<ActionResult> GetStopsByFkIdCompany(string FkIdCompany)
+        public async Task<ActionResult> GetStopsByFkIdCompany(int FkIdCompany)
         {
             var getAllStopsByFkIdCompanyQuery = new GetAllStopsByFkIdCompanyQuery(FkIdCompany); // Corrected query
             var result = await stopQueryService.Handle(getAllStopsByFkIdCompanyQuery);
