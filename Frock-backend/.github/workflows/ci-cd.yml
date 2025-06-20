@@ -3,7 +3,7 @@
 # Se dispara en push a main, PRs hacia main y manualmente
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
