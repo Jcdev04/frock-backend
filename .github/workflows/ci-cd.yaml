@@ -27,7 +27,8 @@ jobs:
         run: dotnet build ./Frock-backend.sln --configuration Release --no-restore
 
       - name: dotnet test
-        run: dotnet test Frock-backend.test/**/*.csproj --no-build --configuration Release
+        working-directory: Frock-backend.test
+        run: dotnet test Frock-backend.test.csproj --no-build --configuration Release
 
       - name: Build Docker image
         run: |
