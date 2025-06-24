@@ -1,43 +1,56 @@
 ﻿name: CI/CD .NET Core → Azure WebApp
 
-# Se dispara en push a main, PRs hacia main y manualmente
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build-and-test:
-    name: Build & Test
+    name: Build, Test & Docker Build
     runs-on: windows-latest
+
     steps:
-      # 1. Checkout del código
       - uses: actions/checkout@v4
 
-      # 2. Instalación de .NET SDK
       - name: Setup .NET 9.x
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.x'
 
-      # 3. Restaurar paquetes
       - name: dotnet restore
         run: dotnet restore ./Frock-backend.sln
 
-      # 4. Compilar en Release
       - name: dotnet build
         run: dotnet build ./Frock-backend.sln --configuration Release --no-restore
-     
+
+      - name: dotnet test
+        run: dotnet test Frock-backend.test/**/*.csproj --no-build --configuration Release
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --file Frock-backend/Dockerfile \
+            --tag frock-backend:latest \
+            Frock-backend
+
   deploy:
     name: Publish & Deploy to Azure
     needs: build-and-test
     runs-on: windows-latest
     environment: production
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup .NET 9.x
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.x'
+
+      - name: dotnet publish
+        run: dotnet publish ./Frock-backend/Frock-backend.csproj \
+              --configuration Release \
+              --output ./publish
