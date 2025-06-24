@@ -30,12 +30,6 @@ jobs:
         working-directory: Frock-backend.test
         run: dotnet test Frock-backend.test.csproj --no-build --configuration Release
 
-      - name: Build Docker image
-        run: |
-          docker build \
-            --file Frock-backend/Dockerfile \
-            --tag frock-backend:latest \
-            Frock-backend
 
   deploy:
     name: Publish & Deploy to Azure
