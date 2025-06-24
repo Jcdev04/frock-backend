@@ -1,9 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Frock_backend.access_and_identity.Application.Interfaces;
-using Frock_backend.access_and_identity.Application.Services;
-using Frock_backend.access_and_identity.Domain.Repositories;
-using Frock_backend.access_and_identity.Infrastructure.Persistence;
-using Frock_backend.access_and_identity.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 //SHARED
 using Frock_backend.shared.Infrastructure.Persistences.EFC.Configuration;
@@ -11,7 +7,24 @@ using Frock_backend.shared.Infrastructure.Persistences.EFC.Repositories;
 using Frock_backend.shared.Infrastructure.Interfaces.ASP.Configuration;
 using Frock_backend.shared.Domain.Repositories;
 
-//COMPANY - Amir
+//IAM - Adrian
+using Frock_backend.IAM.Application.Internal.CommandServices;
+using Frock_backend.IAM.Application.Internal.OutboundServices;
+using Frock_backend.IAM.Application.Internal.QueryServices;
+
+using Frock_backend.IAM.Domain.Repositories;
+using Frock_backend.IAM.Domain.Services;
+using Frock_backend.IAM.Infrastructure.Persistence.EFC.Repositories;
+
+using Frock_backend.IAM.Infrastructure.Hashing.BCrypt.Services;
+using Frock_backend.IAM.Infrastructure.Pipeline.Middleware.Extensions;
+using Frock_backend.IAM.Infrastructure.Tokens.JWT.Configuration;
+using Frock_backend.IAM.Infrastructure.Tokens.JWT.Services;
+
+using Frock_backend.IAM.Interfaces.ACL;
+using Frock_backend.IAM.Interfaces.ACL.Services;
+
+//COMPANY - Yasser
 
 using Frock_backend.transport_Company.Application.Internal.CommandServices;
 using Frock_backend.transport_Company.Application.Internal.QueryServices;
@@ -41,6 +54,12 @@ using Frock_backend.stops.Domain.Services.Geographic;
 using Frock_backend.stops.Infrastructure.Repositories.Geographic;
 
 using Frock_backend.stops.Infrastructure.Seeding;
+// ROUTES - GSUS
+using Frock_backend.routes.Domain.Repository;
+using Frock_backend.routes.Infrastructure.Repositories;
+using Frock_backend.routes.Domain.Service;
+using Frock_backend.routes.Application.Internal.CommandServices;
+using Frock_backend.routes.Application.Internal.QueryServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,15 +74,48 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.EnableAnnotations();
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+     options.SwaggerDoc("v1",
+        new OpenApiInfo
+        {
+            Title = "Frock_Backend",
+            Version = "v1",
+            Description = "Frock Backend API",
+            TermsOfService = new Uri("https://acme-learning.com/tos"),
+            Contact = new OpenApiContact
+            {
+                Name = "frock Studios",
+                Email = "frockWEB.com"
+            },
+            License = new OpenApiLicense
+            {
+                Name = "Apache 2.0",
+                Url = new Uri("https://www.apache.org/licenses/LICENSE-2.0.html")
+            }
+        });
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Title = "CatchUP API",
-        Version = "v1"
+        In = ParameterLocation.Header,
+        Description = "Please enter token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "bearer"
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Id = "Bearer",
+                    Type = ReferenceType.SecurityScheme
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
-// Database
-builder.Services.AddDbContext<AccessIdentityDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 /// <summary>
 /// Obtiene la cadena de conexión a la base de datos MySQL desde la configuración de la aplicación.
@@ -100,13 +152,20 @@ else if (builder.Environment.IsProduction())
 
 
 // Configure Dependency Injection
+
 // Shared Bounded Context Injection Configuration
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// News Bounded Context Injection Configuration
-// Access and Identity
-    builder.Services.AddScoped<IUserRepository, UserRepository>();
-    builder.Services.AddScoped<IUserService, UserService>();
+// IAM Bounded Context Injection Configuration
+// TokenSettings Configuration
+builder.Services.Configure<TokenSettings>(builder.Configuration.GetSection("TokenSettings"));
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserCommandService, UserCommandService>();
+builder.Services.AddScoped<IUserQueryService, UserQueryService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IHashingService, HashingService>();
+builder.Services.AddScoped<IIamContextFacade, IamContextFacade>();
 
 //Company
     builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
@@ -135,6 +194,10 @@ builder.Services.AddScoped<IRegionRepository, RegionRepository>();
     builder.Services.AddScoped<IStopCommandService, StopCommandService>();
     builder.Services.AddScoped<IStopQueryService, StopQueryService>();
 
+//Routes
+    builder.Services.AddScoped<IRouteRepository, RouteRepository>();
+    builder.Services.AddScoped<IRouteCommandService, RouteCommandService>();
+    builder.Services.AddScoped<IRouteQueryService, RouteQueryService>();
 //Seeding Service Geographic Data
 // Datos iniciales fijos de datos geográficos
 builder.Services.AddScoped<GeographicDataSeeder>();
@@ -145,7 +208,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5174")//ajustar
+        policy.WithOrigins("https://deft-tapioca-c27a9c.netlify.app")//ajustar
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -153,10 +216,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-
 app.UseCors();
-
-
 
 // Verify Database Objects are created
 using (var scope = app.Services.CreateScope())
@@ -165,7 +225,7 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<AppDbContext>();
     context.Database.EnsureCreated();
 
-    // Seed initial geographic data
+  // Seed initial geographic data
     try
     {
         var seeder = services.GetRequiredService<GeographicDataSeeder>();
@@ -179,17 +239,22 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger(c =>
 {
-    app.UseSwagger(c =>
-    {
-        c.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0;
-    });
-    app.UseSwaggerUI();
-}
+    c.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0;
+});
+
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+    c.RoutePrefix = string.Empty; // Opcional: para que Swagger sea la p�gina ra�z
+    c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+});
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
+app.UseRouting(); // Si no está implícito
+app.UseRequestAuthorization(); // Tu middleware personalizado
+app.UseAuthorization(); // Authorization de ASP.NET Core
 app.MapControllers();
 
 app.Run();

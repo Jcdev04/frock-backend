@@ -55,6 +55,23 @@ namespace Frock_backend.transport_Company.Interfaces.REST
             var resources = companies.Select(CompanyResourceFromEntityAssembler.ToResourceFromEntity);
             return Ok(resources);
         }
+        
+        [HttpGet("user/{FKeyIdUser}")]
+        [SwaggerOperation(
+            Summary = "Verify Company by UserID",
+            Description = "Returns the redirect route based on whether or not the user has an associated company.",
+            OperationId = "CheckUserCompany")]
+        [SwaggerResponse(StatusCodes.Status200OK, "The user has a company.", typeof(object))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "The user does not have a company.")]
+        
+        public async Task<IActionResult> CheckUserCompany(int FKeyIdUser)
+        {
+            var getCompanyByUserQuery = new GetCompanyByFkIdUserQuery(FKeyIdUser);
+            var company = await queryService.Handle(getCompanyByUserQuery);
+            if (company is null) return NotFound();
+            var resource = CompanyResourceFromEntityAssembler.ToResourceFromEntity(company);
+            return Ok(resource);
+        }
 
         /// <summary>
         /// Gets a company by its ID.
@@ -77,7 +94,8 @@ namespace Frock_backend.transport_Company.Interfaces.REST
             var resource = CompanyResourceFromEntityAssembler.ToResourceFromEntity(company);
             return Ok(resource);
         }
-
+        
+        
         /// <summary>
         /// Updates an existing company.
         /// </summary>
@@ -104,6 +122,8 @@ namespace Frock_backend.transport_Company.Interfaces.REST
             var companyResource = CompanyResourceFromEntityAssembler.ToResourceFromEntity(updatedCompany);
             return Ok(companyResource);
         }
+        
+        
 
         /// <summary>
         /// Deletes a company by its ID.

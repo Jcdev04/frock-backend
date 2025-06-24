@@ -10,5 +10,8 @@ namespace Frock_backend.transport_Company.Domain.Services
         Task<Company?> Handle(GetCompanyByIdQuery query);
 
         Task<Company?> Handle(GetCompanyByNameQuery query);
+
+        Task<Company?> Handle(GetCompanyByFkIdUserQuery query);
+        
     }
 }

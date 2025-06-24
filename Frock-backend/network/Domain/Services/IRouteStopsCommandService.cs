@@ -1,9 +1,0 @@
-﻿using Frock_backend.network.Domain.Model.Aggregates;
-using Frock_backend.network.Domain.Model.Commands;
-namespace Frock_backend.network.Domain.Services
-{
-    public interface IRouteStopsCommandService
-    {
-        Task<RouteStop?> Handle(CreateRouteStopsCommand command);
-    }
-}
