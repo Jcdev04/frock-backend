@@ -46,6 +46,5 @@ jobs:
           dotnet-version: '9.x'
 
       - name: dotnet publish
-        run: dotnet publish Frock-backend/Frock-backend.csproj \
-              --configuration Release \
-              --output 
+        run: |
+            dotnet publish Frock-backend/Frock-backend.csproj --configuration Release --output publish
